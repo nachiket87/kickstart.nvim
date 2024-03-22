@@ -93,6 +93,8 @@ vim.g.maplocalleader = ' '
 -- Set to true if you have a Nerd Font installed and selected in the terminal
 vim.g.have_nerd_font = false
 
+vim.g.setwrap = false
+vim.opt.wrap = false
 -- [[ Setting options ]]
 -- See `:help vim.o`
 -- NOTE: You can change these options as you wish!
@@ -175,6 +177,21 @@ vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
 -- Diagnostic keymaps
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
+vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next [D]iagnostic message' })
+vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Show diagnostic [E]rror messages' })
+vim.keymap.set('n', '<leader>q', ':q<CR>', { desc = 'Close of [Q]uit current tab' })
+vim.keymap.set('n', '<leader>gs', ':G<CR>', { desc = '[G]it [S]tatus' })
+vim.keymap.set('n', '<leader>fp', ':let @* = expand("%")<CR>', { desc = 'Copy current file path to clipboard' })
+vim.keymap.set('n', '<leader>ff', ':Telescope find_files<CR>', { desc = '[F]ind [F]iles' })
+vim.keymap.set('n', '<leader>1', '1gt<CR>')
+vim.keymap.set('n', '<leader>2', '2gt<CR>')
+vim.keymap.set('n', '<leader>3', '3gt<CR>')
+vim.keymap.set('n', '<leader>4', '4gt<CR>')
+vim.keymap.set('n', '<leader>5', '5gt<CR>')
+vim.keymap.set('n', '<leader>6', '6gt<CR>')
+vim.keymap.set('n', '<leader>fb', ':Telescope buffers<CR>', { desc = '[F]ind [Buffers]' })
+vim.keymap.set('n', '<leader>+', ':vertical resize +10<CR>', { desc = 'Vertically Resize +10' })
+vim.keymap.set('n', '<leader>-', ':vertical resize -10<CR>', { desc = 'Vertically Resize +10' })
 
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
@@ -198,6 +215,14 @@ vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left wind
 vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
+vim.keymap.set('n', '<leader>n', ':NvimTreeFindFile<CR>', { noremap = true, silent = true })
+vim.keymap.set('n', '<leader>b', ':NvimTreeToggle<CR>', { noremap = true, silent = true })
+
+-- NOTE: Some terminals have colliding keymaps or are not able to send distinct keycodes
+-- vim.keymap.set("n", "<C-S-h>", "<C-w>H", { desc = "Move window to the left" })
+-- vim.keymap.set("n", "<C-S-l>", "<C-w>L", { desc = "Move window to the right" })
+-- vim.keymap.set("n", "<C-S-j>", "<C-w>J", { desc = "Move window to the lower" })
+-- vim.keymap.set("n", "<C-S-k>", "<C-w>K", { desc = "Move window to the upper" })
 
 -- NOTE: Some terminals have colliding keymaps or are not able to send distinct keycodes
 -- vim.keymap.set("n", "<C-S-h>", "<C-w>H", { desc = "Move window to the left" })
@@ -436,6 +461,13 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
       vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
       vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
+      vim.keymap.set('n', ']c', ':Gitsigns next_hunk<cr>', { desc = 'Next Hunk' })
+      vim.keymap.set('n', '[c', ':Gitsigns prev_hunk<cr>', { desc = 'Previous Hunk' })
+      vim.keymap.set('n', '<leader>gu', ':Gitsigns reset_hunk<cr>', { desc = 'Reset Hunk' })
+      vim.keymap.set('n', '<leader>gcf', ':G checkout %<cr>', { desc = 'Reset Hunk' })
+      vim.keymap.set('n', '<leader>fg', function()
+        builtin.grep_string { search = vim.fn.input 'Grep For > ' }
+      end, { noremap = true, silent = true })
 
       -- Slightly advanced example of overriding default behavior and theme
       vim.keymap.set('n', '<leader>/', function()
@@ -670,6 +702,8 @@ require('lazy').setup({
       --  - capabilities (table): Override fields in capabilities. Can be used to disable certain LSP features.
       --  - settings (table): Override the default settings passed when initializing the server.
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
+      local formatter = vim.g.lazyvim_ruby_formatter or 'rubocop'
+      local lsp = vim.g.lazyvim_ruby_lsp or 'ruby_lsp'
       local servers = {
         -- clangd = {},
         -- gopls = {},
@@ -683,6 +717,12 @@ require('lazy').setup({
         -- But for many setups, the LSP (`ts_ls`) will work just fine
         -- ts_ls = {},
         --
+        ruby_lsp = {
+          enabled = lsp == 'ruby_lsp',
+        },
+        rubocop = {
+          enabled = formatter == 'rubocop',
+        },
 
         lua_ls = {
           -- cmd = { ... },
@@ -735,6 +775,17 @@ require('lazy').setup({
       }
     end,
   },
+  {
+    'nvim-tree/nvim-tree.lua',
+    version = '*',
+    lazy = false,
+    dependencies = {
+      'nvim-tree/nvim-web-devicons',
+    },
+    config = function()
+      require('nvim-tree').setup {}
+    end,
+  },
 
   { -- Autoformat
     'stevearc/conform.nvim',
@@ -775,6 +826,12 @@ require('lazy').setup({
         -- javascript = { "prettierd", "prettier", stop_after_first = true },
       },
     },
+  },
+  {
+    'tpope/vim-fugitive',
+  },
+  {
+    'tpope/vim-rhubarb',
   },
 
   { -- Autocompletion
@@ -881,23 +938,21 @@ require('lazy').setup({
     -- change the command in the config to whatever the name of that colorscheme is.
     --
     -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
-    'folke/tokyonight.nvim',
-    priority = 1000, -- Make sure to load this before all the other start plugins.
-    config = function()
-      ---@diagnostic disable-next-line: missing-fields
-      require('tokyonight').setup {
-        styles = {
-          comments = { italic = false }, -- Disable italics in comments
-        },
-      }
-
+    --
+    'catppuccin/nvim',
+  },
+  {
+    'gruvbox-community/gruvbox',
+    init = function()
       -- Load the colorscheme here.
       -- Like many other themes, this one has different styles, and you could load
       -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-      vim.cmd.colorscheme 'tokyonight-night'
+      vim.cmd.colorscheme 'gruvbox'
+
+      -- You can configure highlights by doing something like:
+      vim.cmd.hi 'Comment gui=none'
     end,
   },
-
   -- Highlight todo, notes, etc in comments
   { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
 
