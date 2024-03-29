@@ -165,7 +165,10 @@ vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous [D]iagnostic message' })
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next [D]iagnostic message' })
 vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Show diagnostic [E]rror messages' })
-vim.keymap.set('n', '<leader>q', ':q<CR>', {})
+vim.keymap.set('n', '<leader>q', ':q<CR>', { desc = 'Close of [Q]uit current tab' })
+vim.keymap.set('n', '<leader>gs', ':G<CR>', { desc = '[G]it [S]tatus' })
+vim.keymap.set('n', '<leader>fp', ':let @* = expand("%")<CR>', { desc = 'Copy current file path to clipboard' })
+vim.keymap.set('n', '<leader>ff', ':Telescope find_files<CR>', { desc = '[F]ind [F]iles' })
 
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
@@ -378,6 +381,11 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
       vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
       vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
+      vim.keymap.set('n', ']c', ':Gitsigns next_hunk<cr>', { desc = 'Next Hunk' })
+      vim.keymap.set('n', '[c', ':Gitsigns prev_hunk<cr>', { desc = 'Previous Hunk' })
+      vim.keymap.set('n', '<leader>fg', function()
+        builtin.grep_string { search = vim.fn.input 'Grep For > ' }
+      end, { noremap = true, silent = true })
 
       -- Slightly advanced example of overriding default behavior and theme
       vim.keymap.set('n', '<leader>/', function()
@@ -657,12 +665,12 @@ require('lazy').setup({
           -- `friendly-snippets` contains a variety of premade snippets.
           --    See the README about individual language/framework/plugin snippets:
           --    https://github.com/rafamadriz/friendly-snippets
-          -- {
-          --   'rafamadriz/friendly-snippets',
-          --   config = function()
-          --     require('luasnip.loaders.from_vscode').lazy_load()
-          --   end,
-          -- },
+          {
+            'rafamadriz/friendly-snippets',
+            config = function()
+              require('luasnip.loaders.from_vscode').lazy_load()
+            end,
+          },
         },
       },
       'saadparwaiz1/cmp_luasnip',
