@@ -93,6 +93,9 @@ vim.g.maplocalleader = ' '
 -- Set to true if you have a Nerd Font installed
 vim.g.have_nerd_font = false
 
+-- Don't wrap to next line when text overflows
+vim.g.setwrap = false
+
 -- [[ Setting options ]]
 -- See `:help vim.opt`
 -- NOTE: You can change these options as you wish!
@@ -383,6 +386,7 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
       vim.keymap.set('n', ']c', ':Gitsigns next_hunk<cr>', { desc = 'Next Hunk' })
       vim.keymap.set('n', '[c', ':Gitsigns prev_hunk<cr>', { desc = 'Previous Hunk' })
+      vim.keymap.set('n', '<leader>gu', ':Gitsigns reset_hunk<cr>', { desc = 'Reset Hunk' })
       vim.keymap.set('n', '<leader>fg', function()
         builtin.grep_string { search = vim.fn.input 'Grep For > ' }
       end, { noremap = true, silent = true })
