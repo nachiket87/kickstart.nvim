@@ -95,6 +95,7 @@ vim.g.have_nerd_font = false
 
 -- Don't wrap to next line when text overflows
 vim.g.setwrap = false
+vim.opt.wrap = false
 
 -- [[ Setting options ]]
 -- See `:help vim.opt`
@@ -172,6 +173,13 @@ vim.keymap.set('n', '<leader>q', ':q<CR>', { desc = 'Close of [Q]uit current tab
 vim.keymap.set('n', '<leader>gs', ':G<CR>', { desc = '[G]it [S]tatus' })
 vim.keymap.set('n', '<leader>fp', ':let @* = expand("%")<CR>', { desc = 'Copy current file path to clipboard' })
 vim.keymap.set('n', '<leader>ff', ':Telescope find_files<CR>', { desc = '[F]ind [F]iles' })
+vim.keymap.set('n', '<leader>1', '1gt<CR>')
+vim.keymap.set('n', '<leader>2', '2gt<CR>')
+vim.keymap.set('n', '<leader>3', '3gt<CR>')
+vim.keymap.set('n', '<leader>4', '4gt<CR>')
+vim.keymap.set('n', '<leader>5', '5gt<CR>')
+vim.keymap.set('n', '<leader>6', '6gt<CR>')
+vim.keymap.set('n', '<leader>fb', ':Telescope buffers<CR>', { desc = '[F]ind [Buffers]' })
 
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
@@ -286,15 +294,7 @@ require('lazy').setup({
     event = 'VimEnter', -- Sets the loading event to 'VimEnter'
     config = function() -- This is the function that runs, AFTER loading
       require('which-key').setup()
-
       -- Document existing key chains
-      require('which-key').register {
-        ['<leader>c'] = { name = '[C]ode', _ = 'which_key_ignore' },
-        ['<leader>d'] = { name = '[D]ocument', _ = 'which_key_ignore' },
-        ['<leader>r'] = { name = '[R]ename', _ = 'which_key_ignore' },
-        ['<leader>s'] = { name = '[S]earch', _ = 'which_key_ignore' },
-        ['<leader>w'] = { name = '[W]orkspace', _ = 'which_key_ignore' },
-      }
     end,
   },
 
@@ -387,6 +387,7 @@ require('lazy').setup({
       vim.keymap.set('n', ']c', ':Gitsigns next_hunk<cr>', { desc = 'Next Hunk' })
       vim.keymap.set('n', '[c', ':Gitsigns prev_hunk<cr>', { desc = 'Previous Hunk' })
       vim.keymap.set('n', '<leader>gu', ':Gitsigns reset_hunk<cr>', { desc = 'Reset Hunk' })
+      vim.keymap.set('n', '<leader>gcf', ':G checkout %<cr>', { desc = 'Reset Hunk' })
       vim.keymap.set('n', '<leader>fg', function()
         builtin.grep_string { search = vim.fn.input 'Grep For > ' }
       end, { noremap = true, silent = true })
@@ -551,6 +552,8 @@ require('lazy').setup({
       --  - capabilities (table): Override fields in capabilities. Can be used to disable certain LSP features.
       --  - settings (table): Override the default settings passed when initializing the server.
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
+      local formatter = vim.g.lazyvim_ruby_formatter or 'rubocop'
+      local lsp = vim.g.lazyvim_ruby_lsp or 'ruby_lsp'
       local servers = {
         -- clangd = {},
         -- gopls = {},
@@ -564,6 +567,19 @@ require('lazy').setup({
         -- But for many setups, the LSP (`tsserver`) will work just fine
         -- tsserver = {},
         --
+        ruby_lsp = {
+          cmd = { '/Users/nachiketpusalkar/.rbenv/shims/ruby-lsp' },
+          enabled = lsp == 'ruby_lsp',
+        },
+        solargraph = {
+          enabled = lsp == 'solargraph',
+        },
+        rubocop = {
+          enabled = formatter == 'rubocop',
+        },
+        standardrb = {
+          enabled = formatter == 'standardrb',
+        },
 
         lua_ls = {
           -- cmd = {...},
@@ -631,7 +647,7 @@ require('lazy').setup({
         -- Disable "format_on_save lsp_fallback" for languages that don't
         -- have a well standardized coding style. You can add additional
         -- languages here or re-enable it for the disabled ones.
-        local disable_filetypes = { c = true, cpp = true }
+        local disable_filetypes = { c = true, cpp = true, typescript = true, javascript = true }
         return {
           timeout_ms = 500,
           lsp_fallback = not disable_filetypes[vim.bo[bufnr].filetype],
@@ -639,6 +655,7 @@ require('lazy').setup({
       end,
       formatters_by_ft = {
         lua = { 'stylua' },
+        go = { 'gofmt' },
         -- Conform can also run multiple formatters sequentially
         -- python = { "isort", "black" },
         --
@@ -842,7 +859,9 @@ require('lazy').setup({
       --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
     end,
   },
-
+  {
+    'tpope/vim-rhubarb',
+  },
   -- The following two comments only work if you have downloaded the kickstart repo, not just copy pasted the
   -- init.lua. If you want these files, they are in the repository, so you can just download them and
   -- place them in the correct locations.
@@ -886,3 +905,25 @@ require('lazy').setup({
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
+vim.api.nvim_create_autocmd('BufWritePre', {
+  pattern = '*.go',
+  callback = function()
+    local params = vim.lsp.util.make_range_params()
+    params.context = { only = { 'source.organizeImports' } }
+    -- buf_request_sync defaults to a 1000ms timeout. Depending on your
+    -- machine and codebase, you may want longer. Add an additional
+    -- argument after params if you find that you have to write the file
+    -- twice for changes to be saved.
+    -- E.g., vim.lsp.buf_request_sync(0, "textDocument/codeAction", params, 3000)
+    local result = vim.lsp.buf_request_sync(0, 'textDocument/codeAction', params)
+    for cid, res in pairs(result or {}) do
+      for _, r in pairs(res.result or {}) do
+        if r.edit then
+          local enc = (vim.lsp.get_client_by_id(cid) or {}).offset_encoding or 'utf-16'
+          vim.lsp.util.apply_workspace_edit(r.edit, enc)
+        end
+      end
+    end
+    vim.lsp.buf.format { async = false }
+  end,
+})
