@@ -180,6 +180,8 @@ vim.keymap.set('n', '<leader>4', '4gt<CR>')
 vim.keymap.set('n', '<leader>5', '5gt<CR>')
 vim.keymap.set('n', '<leader>6', '6gt<CR>')
 vim.keymap.set('n', '<leader>fb', ':Telescope buffers<CR>', { desc = '[F]ind [Buffers]' })
+vim.keymap.set('n', '<leader>+', ':vertical resize +10<CR>', { desc = 'Vertically Resize +10' })
+vim.keymap.set('n', '<leader>-', ':vertical resize -10<CR>', { desc = 'Vertically Resize +10' })
 
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
