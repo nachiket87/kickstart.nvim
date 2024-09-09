@@ -567,7 +567,7 @@ require('lazy').setup({
         --    https://github.com/pmizio/typescript-tools.nvim
         --
         -- But for many setups, the LSP (`tsserver`) will work just fine
-        -- tsserver = {},
+        ts_ls = {},
         --
         ruby_lsp = {
           cmd = { '/Users/nachiketpusalkar/.rbenv/shims/ruby-lsp' },
@@ -649,7 +649,7 @@ require('lazy').setup({
         -- Disable "format_on_save lsp_fallback" for languages that don't
         -- have a well standardized coding style. You can add additional
         -- languages here or re-enable it for the disabled ones.
-        local disable_filetypes = { c = true, cpp = true, typescript = true, javascript = true }
+        local disable_filetypes = { c = true, cpp = true, typescript = false, javascript = false }
         return {
           timeout_ms = 500,
           lsp_fallback = not disable_filetypes[vim.bo[bufnr].filetype],
